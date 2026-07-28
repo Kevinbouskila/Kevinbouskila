@@ -1,0 +1,86 @@
+name: polymarket-platform
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: polymarket
+      POSTGRES_PASSWORD: polymarket
+      POSTGRES_DB: polymarket
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U polymarket"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build: ./backend
+    env_file: .env
+    command: alembic upgrade head
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build: ./backend
+    env_file: .env
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    build: ./backend
+    env_file: .env
+    command: celery -A app.core.celery_app worker --loglevel=info
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  beat:
+    build: ./backend
+    env_file: .env
+    command: celery -A app.core.celery_app beat --loglevel=info
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  # The Next.js dashboard (frontend/) is introduced in a later step of the
+  # build and will be added as a service here once it exists.
+
+volumes:
+  postgres_data:
