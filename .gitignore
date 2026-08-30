@@ -1,0 +1,4 @@
+# Toolchain dependencies — reinstall with: cd social/tooling && npm install
+social/tooling/node_modules/
+# Scratch renders
+social/.tmp/

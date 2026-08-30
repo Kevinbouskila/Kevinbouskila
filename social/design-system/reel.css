@@ -1,0 +1,87 @@
+/* ============================================================
+   SLASH TECH — REEL LAYER
+   1080x1920. Deterministic: every visual state is a function of t.
+   ============================================================ */
+.stage--reel{padding:0;justify-content:flex-start}
+.rbg{position:absolute;inset:0;background:var(--paper);transition:none}
+
+/* Persistent brand furniture. Sits inside the reel safe zone. */
+.rhud{position:absolute;left:88px;right:88px;top:132px;z-index:6;
+  display:flex;align-items:center;justify-content:space-between}
+.rhud .eyebrow{font-size:22px}
+.rprog{position:absolute;left:88px;right:88px;top:196px;height:2px;border-radius:2px;
+  background:var(--line);z-index:6;overflow:hidden}
+.rprog i{display:block;height:100%;width:0;background:var(--grad);border-radius:2px}
+.rfoot{position:absolute;left:88px;right:88px;bottom:150px;z-index:6;
+  display:flex;align-items:center;justify-content:space-between}
+.rfoot .handle{font-size:22px;font-weight:500;color:var(--ink-4)}
+
+/* Scenes stack in the optical centre of the safe zone. */
+.rscenes{position:absolute;left:88px;right:88px;top:300px;bottom:280px;z-index:4}
+.rscene{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:28px;will-change:transform,opacity}
+.rscene.top{top:0;transform:none}
+
+/* Reel type runs larger than the carousel: it is read at arm's length, once. */
+.rscene .display{font-size:106px;line-height:.98;letter-spacing:-.036em}
+.rscene .headline{font-size:82px;line-height:1.04;letter-spacing:-.03em}
+.rscene .title{font-size:60px;line-height:1.14;letter-spacing:-.024em}
+.rscene .subhead{font-size:44px;line-height:1.22}
+.rscene .body-l{font-size:38px;line-height:1.4}
+
+/* The slash sweep: the brand's transition. */
+.rsweep{position:absolute;top:-260px;bottom:-260px;width:300px;left:0;z-index:8;
+  background:var(--grad);opacity:0;transform:skewX(var(--slash-angle)) translateX(-1600px);
+  border-radius:150px;filter:blur(2px);pointer-events:none}
+
+/* A second, hairline slash that leads the sweep. */
+.rsweep2{position:absolute;top:-260px;bottom:-260px;width:12px;left:0;z-index:9;
+  background:var(--grad);opacity:0;transform:skewX(var(--slash-angle)) translateX(-1600px);
+  border-radius:6px;pointer-events:none}
+
+/* End card */
+.rend{display:flex;flex-direction:column;gap:44px;align-items:flex-start}
+.rword{font-size:104px;font-weight:800;letter-spacing:-.038em;line-height:1.02;color:var(--ink);
+  display:flex;align-items:baseline;gap:.16em}
+.rword em{font-style:normal;width:.15em;height:.78em;border-radius:.075em;background:var(--grad);
+  transform:skewX(var(--slash-angle));display:inline-block;align-self:center}
+
+/* Product-tile field (Reel 09) — abstraction of a market filling up. */
+.pgrid{display:grid;justify-content:start;align-content:start}
+.pgrid i{border-radius:7px;background:var(--line-2);display:block}
+.pgrid i.hot{background:var(--grad);box-shadow:0 4px 16px rgba(124,58,237,.28)}
+.pgrid i.mid{background:#DCD7EE}
+
+/* Light code surface (Reel 05) — an editor that keeps the feed bright. */
+.ed{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--sh-2);overflow:hidden}
+.ed .bar{height:66px;display:flex;align-items:center;gap:11px;padding:0 22px;background:var(--paper-2);border-bottom:1px solid var(--line)}
+.ed .bar .d{width:11px;height:11px;border-radius:50%;background:var(--line-2)}
+.ed .bar .f{margin-left:10px;font-family:'JetBrains Mono',monospace;font-size:19px;color:var(--ink-4)}
+.ed .code{padding:30px 30px;font-family:'JetBrains Mono',monospace;font-size:31px;line-height:1.70}
+.ed .code .l{display:flex;gap:22px}
+.ed .code .g{color:#B7B7C6;width:42px;text-align:right;flex:none;font-variant-numeric:tabular-nums}
+.k{color:#2563EB}.st{color:#16A34A}.cm{color:#9A9AAE}.fn{color:#A21CAF}.pl{color:#0A0A17}
+
+/* Big inequality pivot (Reel 05) */
+.neq{font-size:180px;font-weight:800;color:var(--ink-4);line-height:.82;letter-spacing:-.04em}
+
+/* Arpent product surfaces (Reel 12) */
+.app{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:var(--sh-3);overflow:hidden}
+.app .top{height:64px;display:flex;align-items:center;gap:14px;padding:0 24px;background:var(--paper-2);border-bottom:1px solid var(--line)}
+.app .top .nm{font-size:26px;font-weight:700;color:var(--ink);letter-spacing:-.014em}
+.app .top .st{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:16px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4)}
+.app .in{padding:26px 28px}
+.fr{display:flex;align-items:center;justify-content:space-between;padding:23px 0;border-bottom:1px solid var(--line)}
+.fr:last-child{border-bottom:0}
+.fr .fk{font-size:31px;color:var(--ink-3);font-weight:500;letter-spacing:-.01em}
+.fr .fv{font-size:33px;color:var(--ink);font-weight:700;letter-spacing:-.016em;font-variant-numeric:tabular-nums}
+.fr .fv.ok{color:var(--d-green)}
+.plan{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;height:120px;margin-bottom:22px}
+.plan i{background:var(--paper-3);border-radius:8px;display:block}
+.plan i.a{background:var(--lavender)}
+.pillrow{display:flex;flex-wrap:wrap;gap:14px}
+.pillrow span{font-size:34px;font-weight:600;color:var(--ink-2);background:#fff;border:1px solid var(--line-2);
+  border-radius:999px;padding:14px 26px;letter-spacing:-.012em}
+.verdict{background:var(--lavender);border:1px solid #E9E3FA;border-radius:16px;padding:26px 28px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px}
+.verdict .vt{font-size:34px;font-weight:700;color:var(--violet-deep);letter-spacing:-.018em}

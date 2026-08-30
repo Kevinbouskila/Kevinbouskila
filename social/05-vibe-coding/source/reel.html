@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>Vibe coding — Reel 05</title>
+<link rel="stylesheet" href="/design-system/fonts/fonts.css">
+<link rel="stylesheet" href="/design-system/system.css">
+<link rel="stylesheet" href="/design-system/reel.css">
+
+</head><body>
+<div class="stage stage--reel">
+  <div class="rbg" id="rbg"></div>
+  <div class="rhud"><div class="eyebrow"><span class="tick"></span>Build /</div></div>
+  <div class="rprog"><i></i></div>
+  <div class="rscenes" id="rscenes"></div>
+  <div class="rfoot"><span class="tile" style="--t:40px"><i></i></span><div class="handle">@slashtech.io</div></div>
+  <div class="rsweep" id="rsweep"></div>
+  <div class="rsweep2" id="rsweep2"></div>
+</div>
+<script src="/design-system/reel-engine.js"></script>
+<script>
+Reel.build({"scenes":[{"d":2.5,"bg":"#FFFFFF","html":"<h1 class=\"display\">Aujourd’hui,<br>presque n’importe qui<br>peut construire une app.</h1>"},{"d":1.9,"bg":"#FFFFFF","html":"<h2 class=\"headline\">Et c’est une<br>excellente nouvelle.</h2>"},{"d":2.6,"bg":"#F7F8FB","cls":"top","html":"\n      <h2 class=\"headline\" style=\"margin-bottom:44px\">Mais générer du code</h2>\n  <div class=\"ed\">\n    <div class=\"bar\"><span class=\"slash\" style=\"--sw:9px;--sh:20px\"></span><span class=\"d\"></span><span class=\"d\"></span><span class=\"f\">app.tsx</span></div>\n    <div class=\"code\">\n      <div class=\"l\"><span class=\"g\">1</span><span><span class=\"cm\">// généré en quelques secondes</span></span></div>\n      <div class=\"l\"><span class=\"g\">2</span><span><span class=\"k\">export function</span> <span class=\"fn\">Checkout</span>() {</span></div>\n      <div class=\"l\"><span class=\"g\">3</span><span>&nbsp;&nbsp;<span class=\"k\">return</span> &lt;<span class=\"fn\">Form</span> action=<span class=\"st\">\"/pay\"</span> /&gt;</span></div>\n      <div class=\"l\"><span class=\"g\">4</span><span>}</span></div>\n    </div>\n  </div>"},{"d":2.3,"bg":"#FFFFFF","html":"\n      <div class=\"neq\">≠</div><h1 class=\"display\">construire<br>un produit.</h1>"},{"d":4,"bg":"#FFFFFF","stagger":0.17,"html":"<div class=\"title\" style=\"font-size:66px;font-weight:700\">Comprendre le problème.</div><div class=\"title\" style=\"font-size:66px;font-weight:700\">Faire les bons arbitrages.</div><div class=\"title\" style=\"font-size:66px;font-weight:700\">Concevoir l’expérience.</div><div class=\"title\" style=\"font-size:66px;font-weight:700\">Tester.</div><div class=\"title\" style=\"font-size:66px;font-weight:700\">Mesurer.</div><div class=\"title\" style=\"font-size:66px;font-weight:700\">Distribuer.</div>"},{"d":3.6,"bg":"#F5F3FF","stagger":0.3,"html":"\n      <h2 class=\"headline\">L’IA réduit<br>le coût de construction.</h2>\n      <h2 class=\"headline\">Pas le coût<br>des <span class=\"grad\">mauvaises décisions</span>.</h2>"}]});
+</script>
+</body></html>

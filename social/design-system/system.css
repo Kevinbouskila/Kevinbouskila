@@ -1,0 +1,279 @@
+/* ============================================================
+   SLASH TECH — SOCIAL DESIGN SYSTEM
+   Single source of truth for every carousel slide and reel frame.
+   Author slides in HTML; this file owns every visual decision.
+   ============================================================ */
+
+/* ---------- 1. TOKENS ---------- */
+:root{
+  /* Light-first surfaces. The feed lives here. */
+  --paper:#FFFFFF;
+  --paper-2:#F7F8FB;
+  --paper-3:#F1F2F8;
+  --lavender:#F5F3FF;
+  --rose:#FDF2F9;
+
+  /* Ink */
+  --ink:#0A0A17;
+  --ink-2:#3F3F52;
+  --ink-3:#5B5B6E;
+  --ink-4:#8B8B9E;
+  --ink-5:#B7B7C6;
+
+  /* Hairlines */
+  --line:#ECE9F5;
+  --line-2:#E1DDEF;
+
+  /* Brand accents — precious, used sparingly */
+  --violet:#7C3AED;
+  --fuchsia:#A21CAF;
+  --magenta:#EC4899;
+  --violet-deep:#5B21B6;
+  --grad:linear-gradient(135deg,#7C3AED 0%,#A21CAF 52%,#EC4899 100%);
+  --grad-soft:linear-gradient(135deg,rgba(124,58,237,.14) 0%,rgba(162,28,175,.12) 52%,rgba(236,72,153,.12) 100%);
+
+  /* Dark register — exceptional use only */
+  --ink-deep:#0A0A17;
+  --ink-deep-2:#101026;
+
+  /* Data colours. Never carry brand identity. */
+  --d-blue:#2563EB; --d-green:#16A34A; --d-orange:#F97316; --d-red:#EF4444;
+
+  /* Geometry */
+  --margin:88px;
+  --gutter:24px;
+  --radius:16px;
+  --radius-lg:24px;
+  --slash-angle:-18deg;
+
+  /* Elevation — soft, violet-tinted, never black */
+  --sh-1:0 1px 2px rgba(16,10,40,.04), 0 2px 8px rgba(16,10,40,.03);
+  --sh-2:0 2px 4px rgba(16,10,40,.04), 0 14px 34px rgba(90,40,160,.07);
+  --sh-3:0 4px 10px rgba(16,10,40,.05), 0 28px 72px rgba(90,40,160,.10);
+}
+
+/* ---------- 2. RESET + STAGE ---------- */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#8E8E9A}
+body{
+  font-family:'Inter',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:geometricPrecision;
+  font-feature-settings:"kern" 1,"liga" 1,"calt" 1;
+  /* tabular figures widen the hyphen in Inter — scope them to numeric components only */
+  font-variant-numeric:normal;
+}
+
+/* The artboard. Nothing escapes it. */
+.stage{
+  position:relative; overflow:hidden;
+  width:1080px; height:1350px;
+  background:var(--paper); color:var(--ink);
+  display:flex; flex-direction:column;
+  padding:var(--margin);
+}
+.stage--reel{width:1080px;height:1920px;padding:120px 88px}
+
+/* Surface variants */
+.bg-paper{background:var(--paper)}
+.bg-paper-2{background:var(--paper-2)}
+.bg-paper-3{background:var(--paper-3)}
+.bg-lavender{background:var(--lavender)}
+.bg-rose{background:var(--rose)}
+.bg-ink{background:var(--ink-deep);color:#fff}
+.bg-ink .rail,.bg-ink .rule{border-color:rgba(255,255,255,.14)}
+.bg-ink .eyebrow{color:#C9BFF5}
+.bg-ink .counter{color:rgba(255,255,255,.42)}
+.bg-ink .body,.bg-ink .body-l{color:#B9B4C7}
+
+/* ---------- 3. TYPOGRAPHY ---------- */
+.display-xl{font-size:116px;line-height:.94;letter-spacing:-.038em;font-weight:800}
+.display   {font-size:92px; line-height:.98;letter-spacing:-.034em;font-weight:800}
+.headline  {font-size:70px; line-height:1.05;letter-spacing:-.028em;font-weight:800}
+.title     {font-size:54px; line-height:1.12;letter-spacing:-.024em;font-weight:700}
+.subhead   {font-size:40px; line-height:1.22;letter-spacing:-.018em;font-weight:600;color:var(--ink-2)}
+.body-l    {font-size:34px; line-height:1.42;letter-spacing:-.012em;font-weight:400;color:var(--ink-2)}
+.body      {font-size:30px; line-height:1.48;letter-spacing:-.008em;font-weight:400;color:var(--ink-2)}
+.label     {font-size:22px; line-height:1.30;font-weight:600;color:var(--ink-3)}
+.micro     {font-size:18px; line-height:1.30;letter-spacing:.14em;font-weight:700;text-transform:uppercase;color:var(--ink-4)}
+.data      {font-family:'JetBrains Mono',ui-monospace,monospace;font-size:22px;line-height:1.4;letter-spacing:.01em;font-weight:500;font-variant-numeric:tabular-nums}
+
+/* Optical alignment: pull big type flush to the margin. */
+.display-xl,.display,.headline{margin-left:-.055em}
+.tight{text-wrap:balance}
+
+/* The only way a word may take the gradient. */
+.grad{
+  background:var(--grad);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  /* keeps descenders from clipping when background-clip:text is used */
+  padding-bottom:.06em;margin-bottom:-.06em;
+}
+
+/* ---------- 4. THE SLASH — the brand's graphic language ---------- */
+/* 4a. Typographic slash: always trails a category or a step. */
+.sl{color:var(--violet);font-weight:700}
+.sl-ink{color:var(--ink-5);font-weight:700}
+
+/* 4b. Geometric slash: a skewed, rounded bar. The logo's core shape. */
+.slash{
+  display:block;
+  width:var(--sw,14px); height:var(--sh,64px);
+  border-radius:calc(var(--sw,14px)/2);
+  background:var(--grad);
+  transform:skewX(var(--slash-angle));
+  flex:none;
+}
+.slash--ink{background:var(--ink)}
+.slash--line{background:var(--line-2)}
+
+/* 4c. Slash rule: hairline that terminates in a slash tick. */
+.rule{border-top:1px solid var(--line);width:100%}
+.slash-rule{display:flex;align-items:center;gap:16px;width:100%}
+.slash-rule::after{content:"";flex:1;border-top:1px solid var(--line)}
+
+/* 4d. Slash field: repeating diagonal ticks, used as texture at low opacity. */
+.slash-field{
+  position:absolute;inset:0;pointer-events:none;
+  background-image:repeating-linear-gradient(72deg,var(--line) 0 1px,transparent 1px 46px);
+  opacity:.85;
+}
+
+/* 4e. Slash window: a skewed aperture that masks content. */
+.slash-window{
+  position:relative;overflow:hidden;
+  transform:skewX(var(--slash-angle));
+  border-radius:var(--radius);
+}
+.slash-window > *{transform:skewX(calc(-1 * var(--slash-angle)))}
+
+/* ---------- 5. RAIL — the persistent header of every slide ---------- */
+.rail{
+  display:flex;align-items:baseline;justify-content:space-between;
+  padding-bottom:22px;border-bottom:1px solid var(--line);
+  flex:none;
+}
+.eyebrow{
+  font-size:18px;letter-spacing:.14em;font-weight:700;text-transform:uppercase;
+  color:var(--violet);display:flex;align-items:center;gap:.55em;
+}
+.eyebrow .tick{
+  width:8px;height:20px;border-radius:4px;background:var(--grad);
+  transform:skewX(var(--slash-angle));display:inline-block;
+}
+.counter{
+  font-family:'JetBrains Mono',ui-monospace,monospace;
+  font-size:18px;letter-spacing:.06em;font-weight:500;color:var(--ink-4);
+  font-variant-numeric:tabular-nums;
+}
+.counter b{color:var(--ink);font-weight:700}
+
+/* ---------- 6. BODY REGION ---------- */
+.canvas{flex:1;display:flex;flex-direction:column;padding-top:64px;min-height:0}
+.canvas--center{justify-content:center;padding-top:0}
+.canvas--end{justify-content:flex-end}
+.spacer{flex:1}
+.stack{display:flex;flex-direction:column}
+/* gap scale — every even step to 122px, so no stack silently collapses */
+.gap-0{gap:0px}.gap-2{gap:2px}.gap-4{gap:4px}.gap-6{gap:6px}.gap-8{gap:8px}.gap-10{gap:10px}.gap-12{gap:12px}.gap-14{gap:14px}.gap-16{gap:16px}.gap-18{gap:18px}
+.gap-20{gap:20px}.gap-22{gap:22px}.gap-24{gap:24px}.gap-26{gap:26px}.gap-28{gap:28px}.gap-30{gap:30px}.gap-32{gap:32px}.gap-34{gap:34px}.gap-36{gap:36px}.gap-38{gap:38px}
+.gap-40{gap:40px}.gap-42{gap:42px}.gap-44{gap:44px}.gap-46{gap:46px}.gap-48{gap:48px}.gap-50{gap:50px}.gap-52{gap:52px}.gap-54{gap:54px}.gap-56{gap:56px}.gap-58{gap:58px}
+.gap-60{gap:60px}.gap-62{gap:62px}.gap-64{gap:64px}.gap-66{gap:66px}.gap-68{gap:68px}.gap-70{gap:70px}.gap-72{gap:72px}.gap-74{gap:74px}.gap-76{gap:76px}.gap-78{gap:78px}
+.gap-80{gap:80px}.gap-82{gap:82px}.gap-84{gap:84px}.gap-86{gap:86px}.gap-88{gap:88px}.gap-90{gap:90px}.gap-92{gap:92px}.gap-94{gap:94px}.gap-96{gap:96px}.gap-98{gap:98px}
+.gap-100{gap:100px}.gap-102{gap:102px}.gap-104{gap:104px}.gap-106{gap:106px}.gap-108{gap:108px}.gap-110{gap:110px}.gap-112{gap:112px}.gap-114{gap:114px}.gap-116{gap:116px}.gap-118{gap:118px}
+.gap-120{gap:120px}.gap-122{gap:122px}
+
+/* ---------- 7. FOOTER ---------- */
+.foot{display:flex;align-items:center;justify-content:space-between;flex:none;padding-top:26px;border-top:1px solid var(--line)}
+.foot .handle{font-size:19px;font-weight:500;color:var(--ink-4);letter-spacing:-.01em}
+
+/* ---------- 8. LOGO ---------- */
+.tile{
+  --t:44px;
+  width:var(--t);height:var(--t);border-radius:calc(var(--t)*.28);
+  background:var(--grad);display:flex;align-items:center;justify-content:center;flex:none;
+  box-shadow:0 2px 10px rgba(124,58,237,.24);
+}
+.tile i{
+  display:block;width:calc(var(--t)*.115);height:calc(var(--t)*.52);
+  border-radius:calc(var(--t)*.058);background:#fff;
+  transform:skewX(var(--slash-angle));
+}
+.mark{display:flex;align-items:center;gap:14px}
+.mark .wm{font-size:26px;font-weight:700;letter-spacing:-.026em;color:var(--ink)}
+.bg-ink .mark .wm{color:#fff}
+.mark .wm em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+/* ---------- 9. COMPONENTS ---------- */
+/* Numbered step — the slash carries the number. */
+.step{display:flex;align-items:center;gap:14px}
+.step .n{font-size:40px;font-weight:800;letter-spacing:-.03em;color:var(--ink)}
+.step .n span{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+/* Pill / badge */
+.pill{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:11px 20px 12px;border-radius:999px;
+  font-size:20px;font-weight:600;letter-spacing:-.01em;
+  background:var(--paper);border:1px solid var(--line-2);color:var(--ink-2);
+  box-shadow:var(--sh-1);
+}
+.pill--grad{background:var(--grad);border-color:transparent;color:#fff;box-shadow:0 4px 16px rgba(124,58,237,.26)}
+.pill--tint{background:var(--lavender);border-color:#E9E3FA;color:var(--violet-deep)}
+
+/* Product surface — a light card that reads as real UI. */
+.surface{
+  background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-lg);
+  box-shadow:var(--sh-2);overflow:hidden;
+}
+.surface__bar{
+  height:56px;display:flex;align-items:center;gap:12px;padding:0 22px;
+  border-bottom:1px solid var(--line);background:var(--paper-2);
+}
+.surface__bar .dot{width:10px;height:10px;border-radius:50%;background:var(--line-2)}
+.surface__bar .name{font-size:17px;font-weight:600;color:var(--ink-4);letter-spacing:-.005em;margin-left:6px}
+.surface__body{padding:26px}
+
+/* Row — list line inside a surface */
+.row{display:flex;align-items:center;justify-content:space-between;padding:18px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .k{font-size:24px;font-weight:500;color:var(--ink-3);letter-spacing:-.01em}
+.row .v{font-size:24px;font-weight:700;color:var(--ink);letter-spacing:-.015em}
+
+/* Node + edge — for diagrams */
+.node{
+  background:var(--paper);border:1px solid var(--line-2);border-radius:14px;
+  padding:20px 26px;font-size:26px;font-weight:600;letter-spacing:-.014em;color:var(--ink);
+  box-shadow:var(--sh-1);display:inline-flex;align-items:center;gap:12px;
+}
+.node--tint{background:var(--lavender);border-color:#E7E0FB}
+.node--active{border-color:transparent;background:var(--grad);color:#fff;box-shadow:0 6px 20px rgba(124,58,237,.24)}
+.node .idx{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;color:var(--ink-4)}
+.node--active .idx{color:rgba(255,255,255,.72)}
+
+/* Meter — level indicators without alarm semantics */
+.meter{display:flex;gap:5px;align-items:flex-end;height:34px}
+.meter i{width:11px;border-radius:3px;background:var(--line-2);display:block}
+.meter i.on{background:var(--ink)}
+.meter i.grad{background:var(--grad)}
+
+/* Caption */
+.cap{font-size:19px;line-height:1.45;color:var(--ink-4);letter-spacing:-.004em}
+
+/* Divider list with trailing slashes — the brand's list idiom */
+.slashlist{display:flex;flex-direction:column;gap:0}
+.slashlist li{
+  list-style:none;display:flex;align-items:baseline;gap:.4em;
+  font-size:38px;font-weight:600;letter-spacing:-.02em;color:var(--ink);
+  padding:20px 0;border-bottom:1px solid var(--line);
+}
+.slashlist li:last-child{border-bottom:0}
+.slashlist li .sl{font-size:.86em}
+
+/* Soft focal glow — the one permitted atmospheric effect. Always faint. */
+.glow{
+  position:absolute;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(124,58,237,.16) 0%,rgba(236,72,153,.10) 42%,rgba(255,255,255,0) 70%);
+  filter:blur(10px);
+}
