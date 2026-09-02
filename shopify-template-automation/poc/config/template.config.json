@@ -1,0 +1,32 @@
+{
+  "theme": {
+    "handle": "aurora-minimal",
+    "name": "Aurora Minimal",
+    "version": "1.0.0",
+    "author": "Kevin Bouskila",
+    "colorAccent": "#1f6feb",
+    "fontStack": "system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+  },
+  "listing": {
+    "price": "89.00",
+    "currency": "EUR",
+    "positioning": "boutiques mode et lifestyle a catalogue moyen",
+    "audience": "marchands Shopify qui veulent une vitrine rapide sans developpeur",
+    "features": [
+      "Sections modulaires reordonnables depuis l'editeur de theme",
+      "Design responsive mobile-first",
+      "Zero dependance JavaScript externe",
+      "Bloc hero, grille produits et FAQ configurables",
+      "Reglages de couleurs et typographie exposes dans settings_schema"
+    ],
+    "keywords": [
+      "theme shopify",
+      "template shopify minimaliste",
+      "theme ecommerce rapide",
+      "theme shopify mode",
+      "template liquid"
+    ],
+    "supportEmail": "support@example.com",
+    "documentationUrl": "https://example.com/docs/aurora-minimal"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "shopify-template-pipeline-poc",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "PoC: generation d'un theme Shopify -> fiche produit -> publication via Admin API (scenario A)",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "generate:theme": "node src/1-generate-theme.mjs",
+    "generate:listing": "node src/2-generate-listing.mjs",
+    "publish": "node src/3-publish.mjs",
+    "mock": "node src/mock-admin-api.mjs",
+    "demo": "node src/run-all.mjs",
+    "dry-run": "node src/run-all.mjs --dry-run"
+  }
+}

@@ -1,0 +1,82 @@
+# Exemple de pipeline GitHub Actions — scenario A uniquement.
+# A copier dans .github/workflows/ apres avoir cree les secrets.
+#
+# Ce fichier n'est PAS actif dans ce depot : il documente l'enchainement reel.
+#
+# Secrets a creer (obtention MANUELLE, une seule fois — cf. RAPPORT §2.2) :
+#   SHOPIFY_FLAG_STORE   ma-boutique.myshopify.com
+#   SHOPIFY_CLI_THEME_TOKEN  mot de passe Theme Access (scope write_themes)
+#     https://shopify.dev/docs/storefronts/themes/tools/theme-access
+#   SHOPIFY_ADMIN_TOKEN  token Admin API (write_products, write_files,
+#                        write_content, write_publications)
+#   SHOPIFY_ONLINE_STORE_PUBLICATION_ID
+#   SHOPIFY_THEME_ID     identifiant du theme cible (theme publish sans ID est interactif)
+
+name: theme-deploy
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+
+      # --- Etape 1 : generation + controle qualite ---------------------------
+      - name: Generer le theme
+        run: node shopify-template-automation/poc/src/1-generate-theme.mjs
+
+      - name: Installer Shopify CLI
+        run: npm install -g @shopify/cli
+
+      - name: Theme check (linter Liquid)
+        run: shopify theme check --path shopify-template-automation/poc/build/theme
+
+      # Lighthouse CI officiel : performance >= 60 et accessibilite >= 90 sont
+      # exigees par le Theme Store, et restent un bon garde-fou en scenario A.
+      # https://shopify.dev/docs/storefronts/themes/tools/lighthouse-ci
+      # - uses: shopify/lighthouse-ci-action@v1
+      #   with:
+      #     store: ${{ secrets.SHOPIFY_FLAG_STORE }}
+      #     password: ${{ secrets.SHOPIFY_STOREFRONT_PASSWORD }}
+      #     access_token: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
+
+      # --- Deploiement du theme sur la boutique vitrine ----------------------
+      - name: Push du theme
+        env:
+          SHOPIFY_FLAG_STORE: ${{ secrets.SHOPIFY_FLAG_STORE }}
+          SHOPIFY_CLI_THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
+        run: >
+          shopify theme push
+          --path shopify-template-automation/poc/build/theme
+          --theme ${{ secrets.SHOPIFY_THEME_ID }}
+          --json
+
+      # `theme publish` sans --theme passe en mode interactif : toujours passer l'ID en CI.
+      - name: Publier le theme
+        env:
+          SHOPIFY_FLAG_STORE: ${{ secrets.SHOPIFY_FLAG_STORE }}
+          SHOPIFY_CLI_THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
+        run: shopify theme publish --theme ${{ secrets.SHOPIFY_THEME_ID }} --force
+
+      # --- Etapes 2 et 3 : fiche produit + mise en vente ---------------------
+      - name: Rediger la fiche produit
+        run: node shopify-template-automation/poc/src/2-generate-listing.mjs
+
+      - name: Publier le produit et la landing page
+        env:
+          SHOPIFY_SHOP: ${{ secrets.SHOPIFY_FLAG_STORE }}
+          SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
+          SHOPIFY_API_VERSION: '2025-10'
+          SHOPIFY_ONLINE_STORE_PUBLICATION_ID: ${{ secrets.SHOPIFY_ONLINE_STORE_PUBLICATION_ID }}
+        run: node shopify-template-automation/poc/src/3-publish.mjs
+
+# Ce qu'aucune etape de ce workflow ne peut faire :
+#   - soumettre le theme au Shopify Theme Store (aucune API : Partner Dashboard uniquement)
+#   - accepter le Partner Agreement, les CGV ou la licence
+#   - passer la verification d'identite du moyen de paiement
+#   - rattacher le fichier telechargeable via l'app native Digital Downloads
