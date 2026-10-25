@@ -1,5 +1,6 @@
 {
   "loginUrl": "https://member.resamania.com/centreseize/login",
+  "playwrightPath": "/opt/node-tools/node_modules/playwright",
   "planningUrl": "https://member.resamania.com/centreseize/planning?club=%2Fcentreseize%2Fclubs%2F2020",
   "clubIri": "/centreseize/clubs/2020",
   "courseName": "AEROX",

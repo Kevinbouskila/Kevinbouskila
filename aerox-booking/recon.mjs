@@ -2,7 +2,11 @@
 // afin d'écrire des sélecteurs fiables pour book.mjs.
 // Usage : C16_EMAIL=... C16_PASSWORD=... node aerox-booking/recon.mjs
 
-import { chromium } from 'playwright';
+import { createRequire } from 'node:module';
+// Playwright est installé globalement dans l'environnement : on le résout
+// via createRequire car un import ESM nu ne regarde pas NODE_PATH.
+const require = createRequire(import.meta.url);
+const { chromium } = require(process.env.PLAYWRIGHT_PATH || '/opt/node-tools/node_modules/playwright');
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 
 const config = JSON.parse(readFileSync(new URL('./config.json', import.meta.url)));

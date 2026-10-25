@@ -2,7 +2,11 @@
 // Lancé chaque samedi à 10h00 (heure de Paris), soit 24h avant la séance.
 // Usage : C16_EMAIL=... C16_PASSWORD=... node aerox-booking/book.mjs [--dry-run]
 
-import { chromium } from 'playwright';
+import { createRequire } from 'node:module';
+// Playwright est installé globalement dans l'environnement : on le résout
+// via createRequire car un import ESM nu ne regarde pas NODE_PATH.
+const require = createRequire(import.meta.url);
+const { chromium } = require(process.env.PLAYWRIGHT_PATH || '/opt/node-tools/node_modules/playwright');
 import { readFileSync, existsSync } from 'node:fs';
 
 const config = JSON.parse(readFileSync(new URL('./config.json', import.meta.url)));
@@ -32,17 +36,43 @@ function isoDate(fr) {
 }
 
 async function login(page) {
-  await page.goto(config.loginUrl, { waitUntil: 'networkidle' });
-  const passwordField = page.locator(config.selectors.password ?? 'input[type="password"]').first();
-  if (!(await passwordField.count())) {
-    log('Déjà connectée (aucun formulaire de connexion).');
+  // L'app est une SPA ; si une session valide est restaurée, le planning
+  // s'affiche directement sans repasser par le formulaire OAuth.
+  await page.goto(config.planningUrl, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(2000);
+  if (!/\/oauth\/login\//.test(page.url()) && !(await page.getByRole('button', { name: /se connecter/i }).count())) {
+    log('Session déjà active, pas de reconnexion nécessaire.');
     return;
   }
-  await page.locator(config.selectors.email ?? 'input[type="email"], input[type="text"]').first()
-    .fill(process.env.C16_EMAIL);
-  await passwordField.fill(process.env.C16_PASSWORD);
-  await page.locator(config.selectors.submit ?? 'button[type="submit"], input[type="submit"]').first().click();
+
+  // Sinon, parcours de connexion OAuth Symfony en deux étapes.
+  await page.goto(config.loginUrl, { waitUntil: 'networkidle' });
+  const connectBtn = page.getByRole('button', { name: /se connecter/i }).first();
+  if (await connectBtn.count()) {
+    await connectBtn.click();
+    await page.waitForLoadState('networkidle');
+  }
+
+  if (!process.env.C16_EMAIL || !process.env.C16_PASSWORD) {
+    throw new Error('Identifiants manquants : définir C16_EMAIL et C16_PASSWORD.');
+  }
+
+  // Étape 1 : adresse email.
+  await page.locator('input[name="login_step_login[username]"], input[type="email"], input[type="text"]')
+    .first().fill(process.env.C16_EMAIL);
+  await page.locator('button[type="submit"], input[type="submit"]').first().click();
   await page.waitForLoadState('networkidle');
+
+  // Étape 2 : mot de passe (sélecteur agnostique, le nom de champ peut varier).
+  await page.waitForSelector('input[type="password"]', { timeout: 15000 });
+  await page.locator('input[type="password"]').first().fill(process.env.C16_PASSWORD);
+  await page.locator('button[type="submit"], input[type="submit"]').first().click();
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(2000);
+
+  if (/\/oauth\/login\//.test(page.url())) {
+    throw new Error('Échec de connexion (toujours sur la page OAuth). Vérifier les identifiants ou un éventuel code de vérification.');
+  }
   log('Connectée.');
 }
 
