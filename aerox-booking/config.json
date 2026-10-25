@@ -1,0 +1,19 @@
+{
+  "loginUrl": "https://member.resamania.com/centreseize/login",
+  "planningUrl": "https://member.resamania.com/centreseize/planning?club=%2Fcentreseize%2Fclubs%2F2020",
+  "clubIri": "/centreseize/clubs/2020",
+  "courseName": "Hyrox",
+  "weekday": 0,
+  "startTime": "10:00",
+  "timezone": "Europe/Paris",
+  "retry": { "attempts": 10, "delaySeconds": 30 },
+  "selectors": {
+    "loginConnectButton": "button:has-text(\"Se connecter\")",
+    "email": "input[name=\"login_step_login[username]\"]",
+    "emailSubmit": "button[name=\"login_step_login[submit]\"]",
+    "password": "input[type=\"password\"]",
+    "passwordSubmit": "button[type=\"submit\"]",
+    "courseCard": ".MuiPaper-root.MuiGrid-container",
+    "bookButton": "button:has-text(\"S'inscrire\")"
+  }
+}
