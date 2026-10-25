@@ -6,7 +6,10 @@
   "weekday": 0,
   "startTime": "10:00",
   "timezone": "Europe/Paris",
-  "retry": { "attempts": 10, "delaySeconds": 30 },
+  "retry": {
+    "attempts": 40,
+    "delaySeconds": 5
+  },
   "selectors": {
     "loginConnectButton": "button:has-text(\"Se connecter\")",
     "email": "input[name=\"login_step_login[username]\"]",
@@ -15,5 +18,7 @@
     "passwordSubmit": "button[type=\"submit\"]",
     "courseCard": ".MuiPaper-root.MuiGrid-container",
     "bookButton": "button:has-text(\"S'inscrire\")"
-  }
+  },
+  "bookingOpensHoursBefore": 24,
+  "maxWaitMinutes": 90
 }

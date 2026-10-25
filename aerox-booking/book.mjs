@@ -31,6 +31,27 @@ async function blockThirdParties(context) {
   });
 }
 
+/** Instant (ms epoch) correspondant à une heure murale dans un fuseau donné,
+ *  en tenant compte des bascules d'heure d'été. */
+function zonedInstant(dateIso, timeHm, tz) {
+  const naive = Date.parse(`${dateIso}T${timeHm}:00Z`);
+  const offsetAt = (ms) => {
+    const name = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'longOffset' })
+      .formatToParts(new Date(ms)).find((p) => p.type === 'timeZoneName').value;
+    const m = /GMT([+-])(\d{2}):(\d{2})/.exec(name);
+    return m ? (m[1] === '-' ? -1 : 1) * (+m[2] * 60 + +m[3]) * 60000 : 0;
+  };
+  // Deux passes : la seconde corrige les cas proches d'un changement d'heure.
+  const first = naive - offsetAt(naive);
+  return naive - offsetAt(first);
+}
+
+/** Le club n'ouvre la réservation que 24h avant la séance, pour éviter que
+ *  les créneaux soient bloqués des semaines à l'avance. */
+function opensAt(dateIso) {
+  return zonedInstant(dateIso, config.startTime, config.timezone) - config.bookingOpensHoursBefore * 3600 * 1000;
+}
+
 /** Date de la prochaine séance visée, au format AAAA-MM-JJ (heure de Paris). */
 function targetDate() {
   if (forcedDate) return forcedDate;
@@ -163,7 +184,17 @@ const ok = (s) => ['réservé', 'déjà réservé'].includes(s) || s.startsWith(
 let result = { status: 'échec' };
 try {
   await login(page, date);
-  // Le créneau peut s'ouvrir avec un léger décalage : on réessaie.
+
+  // Connexion faite avant l'ouverture : il ne reste que le clic à jouer.
+  const waitMs = opensAt(date) - Date.now();
+  if (waitMs > 0 && waitMs <= config.maxWaitMinutes * 60000) {
+    log(`Ouverture de la réservation dans ${Math.round(waitMs / 1000)} s, attente.`);
+    await page.waitForTimeout(waitMs);
+  } else if (waitMs > 0) {
+    log(`Ouverture dans ${Math.round(waitMs / 60000)} min, soit plus que l'attente autorisée (${config.maxWaitMinutes} min) : tentative immédiate.`);
+  }
+
+  // Le créneau peut s'ouvrir avec un léger décalage : on réessaie en rafale.
   for (let i = 1; i <= config.retry.attempts; i++) {
     result = await attemptBooking(page, date);
     log(`Tentative ${i}/${config.retry.attempts} : ${result.status}`);
