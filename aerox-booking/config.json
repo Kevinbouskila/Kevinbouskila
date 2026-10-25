@@ -1,0 +1,16 @@
+{
+  "loginUrl": "https://www.centre16.fr/connect",
+  "planningUrl": "https://www.centre16.fr/connect",
+  "courseName": "AEROX",
+  "weekday": 0,
+  "startTime": "10:00",
+  "timezone": "Europe/Paris",
+  "retry": { "attempts": 15, "delaySeconds": 20 },
+  "selectors": {
+    "email": null,
+    "password": null,
+    "submit": null,
+    "courseCard": null,
+    "bookButton": null
+  }
+}
