@@ -25,6 +25,12 @@ function targetDate() {
   return `${pad(today.getUTCDate())}/${pad(today.getUTCMonth() + 1)}/${today.getUTCFullYear()}`;
 }
 
+/** Convertit JJ/MM/AAAA en AAAA-MM-JJ pour le paramètre startedAt. */
+function isoDate(fr) {
+  const [d, m, y] = fr.split('/');
+  return `${y}-${m}-${d}`;
+}
+
 async function login(page) {
   await page.goto(config.loginUrl, { waitUntil: 'networkidle' });
   const passwordField = page.locator(config.selectors.password ?? 'input[type="password"]').first();
@@ -42,7 +48,9 @@ async function login(page) {
 
 /** Cherche la carte du cours visé et clique sur Réserver. Renvoie un statut. */
 async function attemptBooking(page, date) {
-  await page.goto(config.planningUrl, { waitUntil: 'networkidle' });
+  // Resamania charge le planning d'une semaine via startedAt (AAAA-MM-JJ).
+  const url = `${config.planningUrl}&startedAt=${isoDate(date)}`;
+  await page.goto(url, { waitUntil: 'networkidle' });
 
   const card = config.selectors.courseCard
     ? page.locator(config.selectors.courseCard)

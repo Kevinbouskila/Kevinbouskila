@@ -1,12 +1,14 @@
 # Réservation automatique — Aerox, dimanche 10h (Centre 16, Maisons-Alfort)
 
+Plateforme : **Resamania** (`member.resamania.com/centreseize`), club `/centreseize/clubs/2020`.
+
 Réserve la séance d'Aerox du dimanche 10h **chaque samedi à 10h00 (heure de Paris)**,
 c'est-à-dire exactement 24h avant la séance, pendant Shabbat.
 
 ## État
 
 - [x] Scripts écrits (`recon.mjs`, `book.mjs`)
-- [ ] **Accès réseau à `www.centre16.fr` à autoriser** dans la politique réseau de l'environnement
+- [ ] **Accès réseau à `member.resamania.com` à autoriser** dans la politique réseau de l'environnement
 - [ ] Identifiants à enregistrer en secrets (`C16_EMAIL`, `C16_PASSWORD`)
 - [ ] Reconnaissance à lancer pour figer les sélecteurs dans `config.json`
 - [ ] Tâche planifiée du samedi 10h00 à créer
@@ -16,7 +18,7 @@ c'est-à-dire exactement 24h avant la séance, pendant Shabbat.
 ### 1. Autoriser le domaine
 
 Menu de l'environnement cloud (barre de titre de la session) → **Edit** → **Network access** →
-ajouter `www.centre16.fr` (et `centre16.fr`) sous **Allowed domains**, en laissant
+ajouter `member.resamania.com` sous **Allowed domains**, en laissant
 « Allow package managers » coché.
 Doc : https://code.claude.com/docs/en/cloud-environments#network-access
 
@@ -26,7 +28,7 @@ Dans les **secrets** de l'environnement, jamais dans ce dépôt :
 
 | Secret | Valeur |
 |---|---|
-| `C16_EMAIL` | email du compte Centre 16 |
+| `C16_EMAIL` | email du compte Resamania / Club Connect |
 | `C16_PASSWORD` | mot de passe |
 
 ### 3. Reconnaissance (une fois)

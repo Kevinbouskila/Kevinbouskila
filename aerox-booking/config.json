@@ -1,6 +1,7 @@
 {
-  "loginUrl": "https://www.centre16.fr/connect",
-  "planningUrl": "https://www.centre16.fr/connect",
+  "loginUrl": "https://member.resamania.com/centreseize/login",
+  "planningUrl": "https://member.resamania.com/centreseize/planning?club=%2Fcentreseize%2Fclubs%2F2020",
+  "clubIri": "/centreseize/clubs/2020",
   "courseName": "AEROX",
   "weekday": 0,
   "startTime": "10:00",
