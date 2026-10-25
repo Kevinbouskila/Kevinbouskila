@@ -7,10 +7,11 @@ des réservations, pendant Shabbat.
 
 Le club n'ouvre la réservation que **24h avant la séance**, exprès, pour éviter que
 les créneaux soient bloqués des semaines à l'avance. Pour le dimanche 10:00,
-l'ouverture tombe donc le **samedi à 10:00**. Le script est lancé un peu avant,
-se connecte, attend l'instant exact de l'ouverture, puis tente en rafale
-(40 essais espacés de 5 s) : avec seulement 12 places, les premières secondes
-comptent.
+l'ouverture tombe donc le **samedi à 10:00**.
+
+Le script calcule cet instant, attend **sans navigateur ouvert** jusqu'à trois
+minutes avant, se connecte, attend le reliquat, puis tente en rafale (40 essais
+espacés de 5 s) : avec seulement 12 places, les premières secondes comptent.
 
 ## État
 
@@ -19,7 +20,7 @@ comptent.
 - [x] Connexion testée de bout en bout (parcours OAuth en deux étapes)
 - [x] Sélecteurs réels figés dans `config.json`
 - [x] Test à blanc concluant sur le dimanche 8 novembre 2026
-- [x] Tâche planifiée du samedi 09h45 créée (attente jusqu'à l'ouverture à 10:00)
+- [x] Tâche planifiée du samedi 08h45 créée (attente jusqu'à l'ouverture exacte)
 
 ## Le cours visé
 
@@ -58,7 +59,7 @@ capture est écrite dans `aerox-booking/erreur.png`.
 - `courseName` / `startTime` — le cours visé (`Hyrox`, `10:00`)
 - `weekday` — `0` = dimanche
 - `bookingOpensHoursBefore` — `24`, la règle du club
-- `maxWaitMinutes` — `90` : au-delà, le script tente tout de suite au lieu d'attendre
+- `maxWaitMinutes` — `150` : au-delà, le script tente tout de suite au lieu d'attendre
 - `retry` — 40 tentatives espacées de 5 s, pour emporter la place dès l'ouverture
 - `selectors` — sélecteurs réels relevés sur le site, à revoir si Resamania change son interface
 
@@ -83,13 +84,14 @@ donc elle suit les bascules d'heure :
 | passage à l'heure d'été (mars) | dimanche 10:00 | samedi **09:00** |
 | passage à l'heure d'hiver (octobre) | dimanche 10:00 | samedi **11:00** |
 
-La tâche planifiée se déclenche à **09:45**, ce qui couvre le cas ordinaire
-(15 min d'attente) et le passage à l'heure d'hiver (75 min d'attente, sous la
-limite de 90 min).
+La tâche planifiée se déclenche à **08:45**, soit avant la plus précoce des trois
+ouvertures possibles, et le script attend l'instant exact : 15 min d'attente au
+passage à l'heure d'été, 75 min en semaine ordinaire, 135 min au passage à
+l'heure d'hiver — toutes sous la limite de 150 min. L'attente ne mobilise rien :
+le navigateur n'est lancé que trois minutes avant l'ouverture.
 
-**Un samedi par an**, celui du passage à l'heure d'été, l'ouverture a lieu à 09:00
-soit 45 min avant le déclenchement : ce jour-là, mieux vaut lancer
-`node aerox-booking/book.mjs` à la main avant 09:00, ou décaler la tâche.
+**Aucune intervention manuelle n'est donc nécessaire, y compris les week-ends de
+changement d'heure.**
 
 ## Limite connue
 

@@ -172,8 +172,23 @@ async function attemptBooking(page, date) {
   return { status: 'cliqué, confirmation non vérifiée', text: after || text };
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 const date = targetDate();
+const open = opensAt(date);
 log(`Cible : ${config.courseName} ${config.startTime} — ${dayLabel(date)} (${date})${dryRun ? ' [dry-run]' : ''}`);
+log(`Ouverture des réservations : ${new Intl.DateTimeFormat('fr-FR', { timeZone: config.timezone, dateStyle: 'full', timeStyle: 'short' }).format(new Date(open))}`);
+
+// On n'ouvre le navigateur que peu avant l'ouverture : attendre à vide coûte
+// moins qu'un navigateur laissé ouvert une heure.
+const LEAD_MS = 3 * 60 * 1000;
+const untilOpen = open - Date.now();
+if (untilOpen > config.maxWaitMinutes * 60000) {
+  log(`Ouverture dans ${Math.round(untilOpen / 60000)} min, soit plus que l'attente autorisée (${config.maxWaitMinutes} min) : tentative immédiate.`);
+} else if (untilOpen > LEAD_MS) {
+  log(`Attente de ${Math.round((untilOpen - LEAD_MS) / 60000)} min avant d'ouvrir le navigateur.`);
+  await sleep(untilOpen - LEAD_MS);
+}
 
 const browser = await chromium.launch();
 const context = await browser.newContext({ locale: 'fr-FR', timezoneId: config.timezone });
@@ -186,12 +201,10 @@ try {
   await login(page, date);
 
   // Connexion faite avant l'ouverture : il ne reste que le clic à jouer.
-  const waitMs = opensAt(date) - Date.now();
-  if (waitMs > 0 && waitMs <= config.maxWaitMinutes * 60000) {
-    log(`Ouverture de la réservation dans ${Math.round(waitMs / 1000)} s, attente.`);
-    await page.waitForTimeout(waitMs);
-  } else if (waitMs > 0) {
-    log(`Ouverture dans ${Math.round(waitMs / 60000)} min, soit plus que l'attente autorisée (${config.maxWaitMinutes} min) : tentative immédiate.`);
+  const remaining = open - Date.now();
+  if (remaining > 0 && remaining <= config.maxWaitMinutes * 60000) {
+    log(`Ouverture dans ${Math.round(remaining / 1000)} s, attente.`);
+    await page.waitForTimeout(remaining);
   }
 
   // Le créneau peut s'ouvrir avec un léger décalage : on réessaie en rafale.

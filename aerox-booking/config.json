@@ -20,5 +20,5 @@
     "bookButton": "button:has-text(\"S'inscrire\")"
   },
   "bookingOpensHoursBefore": 24,
-  "maxWaitMinutes": 90
+  "maxWaitMinutes": 150
 }
