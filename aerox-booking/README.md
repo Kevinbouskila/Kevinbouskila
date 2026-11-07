@@ -63,6 +63,32 @@ capture est écrite dans `aerox-booking/erreur.png`.
 - `retry` — 40 tentatives espacées de 5 s, pour emporter la place dès l'ouverture
 - `selectors` — sélecteurs réels relevés sur le site, à revoir si Resamania change son interface
 
+## Le refus serveur du 7 novembre 2026
+
+Premier passage réel : le script a trouvé le cours à 10:00:12 et cliqué 40 fois
+sans effet apparent. En réalité, chaque clic envoyait bien la requête
+d'inscription, et le serveur la refusait :
+
+```
+POST https://api.resamania.com/centreseize/attendees  ->  400
+{"hydra:description": "api.error.attendee.no-valid-tag"}
+```
+
+Chez Resamania, le droit de réserver est porté par l'abonnement, via des « tags »
+qui déterminent les activités accessibles. `no-valid-tag` signifie donc que le
+compte n'a pas d'abonnement valide donnant droit au cours — rien que le script
+puisse corriger. Le refus s'est reproduit sur AéroBox, donc il ne vise pas un
+cours en particulier : c'est le compte. À rapprocher du bandeau permanent
+« votre carte bancaire arrive bientôt à expiration ».
+
+Le site n'affiche **aucun message** dans ce cas : l'échec était totalement muet
+côté interface. Le script écoute désormais la réponse de l'API d'inscription,
+s'arrête à la première tentative et remonte le motif exact.
+
+**Un test à blanc ne peut pas détecter ça**, puisqu'il s'arrête avant le clic.
+Tant que le compte ne peut pas réserver, la seule vérification valable est une
+réservation réelle sur un cours réservable.
+
 ## Deux pièges rencontrés, et leur correctif
 
 1. **`networkidle` ne retombe jamais.** La page appelle des domaines tiers

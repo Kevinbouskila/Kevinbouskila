@@ -24,6 +24,25 @@ const settle = (page) =>
 
 /** N'autorise que Resamania : tout le reste est abandonné immédiatement
  *  plutôt que d'attendre un timeout réseau. */
+/** Dernier refus renvoyé par l'API d'inscription, s'il y en a eu un. */
+let lastRejection = null;
+
+/** L'inscription passe par un POST sur /attendees. En cas de refus, le site
+ *  n'affiche rien du tout : sans écouter cette réponse, l'échec est muet. */
+function watchBookingApi(page) {
+  page.on('response', async (res) => {
+    if (res.request().method() !== 'POST' || !/\/attendees\b/.test(res.url())) return;
+    if (res.status() < 400) return;
+    let detail = '';
+    try {
+      const body = await res.text();
+      detail = (JSON.parse(body)['hydra:description'] || body).toString().slice(0, 200);
+    } catch { detail = `HTTP ${res.status()}`; }
+    lastRejection = { status: res.status(), detail };
+    log(`Refus de l'API d'inscription : HTTP ${res.status()} — ${detail}`);
+  });
+}
+
 async function blockThirdParties(context) {
   await context.route('**/*', (route) => {
     const host = new URL(route.request().url()).hostname;
@@ -148,9 +167,15 @@ async function attemptBooking(page, date) {
   if (!(await button.count())) return { status: 'pas de bouton', text };
   if (dryRun) return { status: 'dry-run : bouton trouvé', text };
 
+  lastRejection = null;
   await button.click();
   await settle(page);
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(3000);
+
+  // Un refus de l'API est définitif : réessayer n'y changera rien.
+  if (lastRejection) {
+    return { status: 'refusé par le site', refus: lastRejection.detail, text };
+  }
 
   // Certaines inscriptions passent par une boîte de confirmation.
   const confirm = page.locator('[role="dialog"]')
@@ -194,6 +219,7 @@ const browser = await chromium.launch();
 const context = await browser.newContext({ locale: 'fr-FR', timezoneId: config.timezone });
 await blockThirdParties(context);
 const page = await context.newPage();
+watchBookingApi(page);
 
 const ok = (s) => ['réservé', 'déjà réservé'].includes(s) || s.startsWith('dry-run');
 let result = { status: 'échec' };
@@ -211,7 +237,7 @@ try {
   for (let i = 1; i <= config.retry.attempts; i++) {
     result = await attemptBooking(page, date);
     log(`Tentative ${i}/${config.retry.attempts} : ${result.status}`);
-    if (ok(result.status) || result.status === 'complet') break;
+    if (ok(result.status) || ['complet', 'refusé par le site'].includes(result.status)) break;
     if (i < config.retry.attempts) await page.waitForTimeout(config.retry.delaySeconds * 1000);
   }
 } catch (error) {
