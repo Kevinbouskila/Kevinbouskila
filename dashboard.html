@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord Slash Tech</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0A0A17 0%, #101026 100%);
+            color: #FFFFFF;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 3rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 2rem;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #7C3AED 0%, #A21CAF 50%, #EC4899 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 24px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #7C3AED 0%, #A21CAF 50%, #EC4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #B9B4C7;
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-label {
+            color: #B9B4C7;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            color: #16A34A;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .chart-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #FFFFFF;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            margin-bottom: 1rem;
+        }
+
+        .device-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .device-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: rgba(124, 58, 237, 0.1);
+            border-radius: 12px;
+            border-left: 4px solid #7C3AED;
+        }
+
+        .device-info {
+            flex: 1;
+        }
+
+        .device-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .device-bar {
+            height: 6px;
+            background: rgba(124, 58, 237, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .device-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7C3AED 0%, #EC4899 100%);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .device-stats {
+            font-size: 0.85rem;
+            color: #B9B4C7;
+        }
+
+        .device-percent {
+            font-weight: 700;
+            color: #FFFFFF;
+        }
+
+        .countries-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .country-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .country-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+        }
+
+        .country-flag {
+            font-size: 1.5rem;
+        }
+
+        .country-name {
+            font-weight: 600;
+        }
+
+        .country-value {
+            color: #B9B4C7;
+            font-size: 0.9rem;
+        }
+
+        .country-percent {
+            font-weight: 700;
+            color: #7C3AED;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .top-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .stat-value {
+                font-size: 1.8rem;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(124, 58, 237, 0.4);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(124, 58, 237, 0.6);
+        }
+
+        .ga4-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #7C3AED 0%, #EC4899 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-top: 1rem;
+        }
+
+        .note {
+            background: rgba(124, 58, 237, 0.1);
+            border-left: 3px solid #7C3AED;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #B9B4C7;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-section">
+                <div class="logo-icon">/</div>
+                <div>
+                    <h1>Tableau de Bord Slash Tech</h1>
+                    <p class="subtitle">Analytics en temps réel • Intégration GA4 consentante</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Visiteurs Uniques</div>
+                <div class="stat-value">12,847</div>
+                <div class="stat-change">↑ 34% ce mois</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Sessions</div>
+                <div class="stat-value">18,392</div>
+                <div class="stat-change">↑ 28% ce mois</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Taux de Conversion</div>
+                <div class="stat-value">3.42%</div>
+                <div class="stat-change">↑ 12% ce mois</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pays Actifs</div>
+                <div class="stat-value">47</div>
+                <div class="stat-change">+5 nouveaux</div>
+            </div>
+        </div>
+
+        <div class="top-section">
+            <div class="chart-card">
+                <div class="chart-title">📱 Répartition par Appareil</div>
+                <div class="chart-container">
+                    <canvas id="deviceChart"></canvas>
+                </div>
+                <div class="note">
+                    ℹ️ Données GA4 consentantes • User Agent et Device Type agrégés
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">🌍 Top 10 Pays</div>
+                <div class="chart-container">
+                    <canvas id="countriesChart"></canvas>
+                </div>
+                <div class="note">
+                    ℹ️ Géolocalisation IP agrégée • Visiteurs consentants
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">Détail par Appareil</div>
+                <div class="device-list" id="deviceDetail"></div>
+                <div class="ga4-badge">Provenant de GA4</div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">Répartition Géographique</div>
+                <div class="countries-list" id="countriesList"></div>
+                <div class="ga4-badge">Provenant de GA4</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Données simulées (à remplacer par GA4 API réel)
+        const deviceData = {
+            labels: ['Mobile', 'Desktop', 'Tablet'],
+            data: [58, 35, 7],
+            colors: ['#7C3AED', '#EC4899', '#A21CAF']
+        };
+
+        const countriesData = [
+            { name: 'France', flag: '🇫🇷', visitors: 3240, percent: 25.2 },
+            { name: 'États-Unis', flag: '🇺🇸', visitors: 2180, percent: 17.0 },
+            { name: 'Canada', flag: '🇨🇦', visitors: 1850, percent: 14.4 },
+            { name: 'Allemagne', flag: '🇩🇪', visitors: 1240, percent: 9.6 },
+            { name: 'Suisse', flag: '🇨🇭', visitors: 980, percent: 7.6 },
+            { name: 'Belgique', flag: '🇧🇪', visitors: 765, percent: 5.9 },
+            { name: 'Espagne', flag: '🇪🇸', visitors: 620, percent: 4.8 },
+            { name: 'Royaume-Uni', flag: '🇬🇧', visitors: 545, percent: 4.2 },
+            { name: 'Italie', flag: '🇮🇹', visitors: 380, percent: 3.0 },
+            { name: 'Autres', flag: '🌐', visitors: 507, percent: 3.9 }
+        ];
+
+        const deviceDetails = [
+            { name: 'iPhone', percent: 38, visitors: 4874 },
+            { name: 'Chrome (Desktop)', percent: 22, visitors: 2827 },
+            { name: 'Samsung', percent: 12, visitors: 1542 },
+            { name: 'Firefox (Desktop)', percent: 8, visitors: 1028 },
+            { name: 'iPad', percent: 5, visitors: 642 },
+            { name: 'Autres', percent: 15, visitors: 1926 }
+        ];
+
+        // Chart: Appareils (Doughnut)
+        const deviceCtx = document.getElementById('deviceChart').getContext('2d');
+        new Chart(deviceCtx, {
+            type: 'doughnut',
+            data: {
+                labels: deviceData.labels,
+                datasets: [{
+                    data: deviceData.data,
+                    backgroundColor: deviceData.colors,
+                    borderColor: '#0A0A17',
+                    borderWidth: 2,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#B9B4C7',
+                            font: { family: 'Inter, sans-serif', size: 13 },
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+
+        // Chart: Pays (Horizontal Bar)
+        const countriesCtx = document.getElementById('countriesChart').getContext('2d');
+        const topCountries = countriesData.slice(0, 8);
+        new Chart(countriesCtx, {
+            type: 'bar',
+            data: {
+                labels: topCountries.map(c => c.name),
+                datasets: [{
+                    label: 'Visiteurs',
+                    data: topCountries.map(c => c.visitors),
+                    backgroundColor: '#7C3AED',
+                    borderColor: '#A21CAF',
+                    borderWidth: 1,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#B9B4C7', font: { size: 12 } }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#B9B4C7', font: { size: 12 } }
+                    }
+                }
+            }
+        });
+
+        // Détail Appareils
+        const deviceDetail = document.getElementById('deviceDetail');
+        deviceDetails.forEach(device => {
+            const item = document.createElement('div');
+            item.className = 'device-item';
+            item.innerHTML = `
+                <div class="device-info">
+                    <div class="device-name">${device.name}</div>
+                    <div class="device-bar">
+                        <div class="device-fill" style="width: ${device.percent}%"></div>
+                    </div>
+                </div>
+                <div class="device-stats">
+                    <span class="device-percent">${device.percent}%</span>
+                    <span style="margin-left: 0.5rem;">${device.visitors.toLocaleString()}</span>
+                </div>
+            `;
+            deviceDetail.appendChild(item);
+        });
+
+        // Liste Pays
+        const countriesList = document.getElementById('countriesList');
+        countriesData.forEach(country => {
+            const item = document.createElement('div');
+            item.className = 'country-item';
+            item.innerHTML = `
+                <div class="country-info">
+                    <span class="country-flag">${country.flag}</span>
+                    <div>
+                        <div class="country-name">${country.name}</div>
+                        <div class="country-value">${country.visitors.toLocaleString()} visiteurs</div>
+                    </div>
+                </div>
+                <div class="country-percent">${country.percent}%</div>
+            `;
+            countriesList.appendChild(item);
+        });
+    </script>
+</body>
+</html>
