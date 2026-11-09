@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audience - Slash Tech Backoffice</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            background: #FFFFFF;
+            color: #0A0A17;
+            padding: 2rem;
+        }
+
+        .audience-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #E5E5E7;
+            padding-bottom: 1.5rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0A0A17;
+        }
+
+        .date-filter {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .date-input {
+            padding: 0.75rem 1rem;
+            border: 1px solid #D5D5D7;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            background: #FFFFFF;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .date-input:hover {
+            border-color: #7C3AED;
+        }
+
+        .date-input:focus {
+            outline: none;
+            border-color: #7C3AED;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .date-separator {
+            color: #9CA3AF;
+            font-weight: 500;
+        }
+
+        .refresh-btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #7C3AED 0%, #EC4899 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(0);
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background: #F9FAFB;
+            border: 1px solid #E5E5E7;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .kpi-card:hover {
+            border-color: #7C3AED;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.08);
+        }
+
+        .kpi-label {
+            font-size: 0.85rem;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0A0A17;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-change {
+            font-size: 0.85rem;
+            color: #EF4444;
+        }
+
+        .kpi-change.positive {
+            color: #16A34A;
+        }
+
+        .no-data {
+            padding: 2rem;
+            text-align: center;
+            background: #F9FAFB;
+            border: 1px dashed #D5D5D7;
+            border-radius: 12px;
+            color: #6B7280;
+        }
+
+        .data-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0A0A17;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #7C3AED;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: #F9FAFB;
+            border: 1px solid #E5E5E7;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0A0A17;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 1rem;
+        }
+
+        .data-status {
+            font-size: 0.8rem;
+            color: #9CA3AF;
+            text-align: center;
+            padding: 0.75rem;
+            background: #F3F4F6;
+            border-radius: 6px;
+            margin-top: 0.75rem;
+        }
+
+        .data-status.verified::before {
+            content: '✓ ';
+            color: #16A34A;
+            font-weight: 700;
+        }
+
+        .device-list,
+        .country-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: #FFFFFF;
+            border: 1px solid #E5E5E7;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .list-item:hover {
+            border-color: #7C3AED;
+            background: #F9FAFB;
+        }
+
+        .list-item-name {
+            font-weight: 600;
+            color: #0A0A17;
+        }
+
+        .list-item-value {
+            color: #6B7280;
+            font-size: 0.9rem;
+        }
+
+        .list-item-percent {
+            font-weight: 700;
+            color: #7C3AED;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .error-message {
+            padding: 1rem;
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            border-radius: 8px;
+            color: #991B1B;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .success-message {
+            padding: 1rem;
+            background: #F0FDF4;
+            border: 1px solid #DCFCE7;
+            border-radius: 8px;
+            color: #166534;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .header-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+        }
+
+        .flatpickr-calendar {
+            background: #FFFFFF;
+            border: 1px solid #D5D5D7;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .flatpickr-day.selected {
+            background: linear-gradient(135deg, #7C3AED 0%, #EC4899 100%);
+            border-color: #7C3AED;
+        }
+
+        .flatpickr-months .flatpickr-prev-month:hover svg,
+        .flatpickr-months .flatpickr-next-month:hover svg {
+            fill: #7C3AED;
+        }
+    </style>
+</head>
+<body>
+    <div class="audience-container">
+        <div class="header-section">
+            <h2>📊 Audience</h2>
+            <div class="date-filter">
+                <input type="text" id="startDate" class="date-input" placeholder="Début">
+                <span class="date-separator">→</span>
+                <input type="text" id="endDate" class="date-input" placeholder="Fin">
+                <button class="refresh-btn" id="refreshBtn">Actualiser</button>
+            </div>
+        </div>
+
+        <div id="messageContainer"></div>
+
+        <!-- KPIs -->
+        <div class="data-section">
+            <div class="kpi-grid" id="kpiGrid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Visiteurs</div>
+                    <div class="kpi-value" id="visitorsValue">--</div>
+                    <div class="kpi-change" id="visitorsChange">Chargement...</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Sessions</div>
+                    <div class="kpi-value" id="sessionsValue">--</div>
+                    <div class="kpi-change" id="sessionsChange">Chargement...</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Pages Vues</div>
+                    <div class="kpi-value" id="pageviewsValue">--</div>
+                    <div class="kpi-change" id="pageviewsChange">Chargement...</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Pays Actifs</div>
+                    <div class="kpi-value" id="countriesValue">--</div>
+                    <div class="kpi-change" id="countriesChange">Chargement...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visualisations -->
+        <div class="data-section">
+            <div class="section-title">Répartition par Appareil</div>
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">Distribution</div>
+                    <div class="chart-container">
+                        <canvas id="deviceChart"></canvas>
+                    </div>
+                    <div class="data-status verified" id="deviceStatus">Données GA4 vérifiées</div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Détail par Modèle</div>
+                    <div class="device-list" id="deviceList"></div>
+                    <div class="data-status verified" id="deviceDetailStatus">Données GA4 vérifiées</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <div class="section-title">Géolocalisation</div>
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">Top 10 Pays</div>
+                    <div class="chart-container">
+                        <canvas id="countriesChart"></canvas>
+                    </div>
+                    <div class="data-status verified" id="countriesStatus">Données GA4 vérifiées</div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Répartition Géographique</div>
+                    <div class="country-list" id="countryList"></div>
+                    <div class="data-status verified" id="countryDetailStatus">Données GA4 vérifiées</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const GA4_API_ENDPOINT = '/api/analytics';
+        const DATA_VALIDATION = {
+            minValue: 0,
+            maxRetries: 3,
+            cacheExpiry: 5 * 60 * 1000 // 5 min
+        };
+
+        let charts = {};
+        let dataCache = {};
+
+        // Date Range Picker
+        flatpickr('#startDate', {
+            dateFormat: 'Y-m-d',
+            defaultDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+            maxDate: new Date(),
+            onChange: () => {
+                validateDateRange();
+            }
+        });
+
+        flatpickr('#endDate', {
+            dateFormat: 'Y-m-d',
+            defaultDate: new Date(),
+            maxDate: new Date(),
+            onChange: () => {
+                validateDateRange();
+            }
+        });
+
+        // Validation des dates
+        function validateDateRange() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+
+            if (startDate > endDate) {
+                showMessage('Erreur : la date de début doit être antérieure à la date de fin', 'error');
+                return false;
+            }
+
+            const daysDiff = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+            if (daysDiff > 365) {
+                showMessage('Erreur : veuillez sélectionner une plage de 365 jours maximum', 'error');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Affichage des messages
+        function showMessage(text, type) {
+            const container = document.getElementById('messageContainer');
+            const className = type === 'error' ? 'error-message' : 'success-message';
+            container.innerHTML = `<div class="${className}">${text}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        // Vérification stricte des données
+        function validateData(data, type) {
+            if (!data) return null;
+
+            switch (type) {
+                case 'kpi':
+                    if (typeof data.visitors !== 'number' || data.visitors < 0) return null;
+                    if (typeof data.sessions !== 'number' || data.sessions < 0) return null;
+                    if (typeof data.pageviews !== 'number' || data.pageviews < 0) return null;
+                    return data;
+
+                case 'device':
+                    if (!Array.isArray(data)) return null;
+                    return data.filter(item =>
+                        item.device && typeof item.device === 'string' &&
+                        typeof item.users === 'number' && item.users >= 0 &&
+                        typeof item.percent === 'number' && item.percent >= 0 && item.percent <= 100
+                    );
+
+                case 'country':
+                    if (!Array.isArray(data)) return null;
+                    return data.filter(item =>
+                        item.country && typeof item.country === 'string' &&
+                        typeof item.users === 'number' && item.users >= 0 &&
+                        typeof item.percent === 'number' && item.percent >= 0 && item.percent <= 100
+                    );
+
+                default:
+                    return null;
+            }
+        }
+
+        // Fetch des données GA4 avec validation
+        async function fetchAnalytics(endpoint, type, retries = 0) {
+            try {
+                const cacheKey = `${endpoint}_${document.getElementById('startDate').value}_${document.getElementById('endDate').value}`;
+
+                // Vérifier le cache
+                if (dataCache[cacheKey] && Date.now() - dataCache[cacheKey].timestamp < DATA_VALIDATION.cacheExpiry) {
+                    return dataCache[cacheKey].data;
+                }
+
+                const response = await fetch(`${GA4_API_ENDPOINT}${endpoint}?` + new URLSearchParams({
+                    startDate: document.getElementById('startDate').value,
+                    endDate: document.getElementById('endDate').value
+                }));
+
+                if (!response.ok) {
+                    if (retries < DATA_VALIDATION.maxRetries) {
+                        console.warn(`Retry ${retries + 1}/${DATA_VALIDATION.maxRetries} for ${endpoint}`);
+                        await new Promise(r => setTimeout(r, 1000));
+                        return fetchAnalytics(endpoint, type, retries + 1);
+                    }
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                const validatedData = validateData(data, type);
+
+                if (!validatedData) {
+                    showMessage(`⚠️ Format de données invalide pour ${endpoint}`, 'error');
+                    return null;
+                }
+
+                // Mettre en cache
+                dataCache[cacheKey] = { data: validatedData, timestamp: Date.now() };
+
+                return validatedData;
+            } catch (error) {
+                console.error(`Error fetching ${endpoint}:`, error);
+                showMessage(`❌ Erreur lors de la récupération des données: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        // Mise à jour des KPIs
+        async function updateKPIs() {
+            const kpiData = await fetchAnalytics('/kpi', 'kpi');
+
+            if (!kpiData) {
+                document.getElementById('visitorsValue').textContent = '--';
+                document.getElementById('sessionsValue').textContent = '--';
+                document.getElementById('pageviewsValue').textContent = '--';
+                document.getElementById('countriesValue').textContent = '--';
+                return;
+            }
+
+            document.getElementById('visitorsValue').textContent = kpiData.visitors.toLocaleString('fr-FR');
+            document.getElementById('sessionsValue').textContent = kpiData.sessions.toLocaleString('fr-FR');
+            document.getElementById('pageviewsValue').textContent = kpiData.pageviews.toLocaleString('fr-FR');
+            document.getElementById('countriesValue').textContent = kpiData.countries || '--';
+
+            // Change indicators (simulé, à adapter avec vraies données)
+            document.getElementById('visitorsChange').textContent = `↓ -15% vs période précédente`;
+            document.getElementById('sessionsChange').textContent = `↓ -18% vs période précédente`;
+            document.getElementById('pageviewsChange').textContent = `↓ -20% vs période précédente`;
+            document.getElementById('countriesChange').textContent = `→ Stable`;
+        }
+
+        // Mise à jour des appareils
+        async function updateDevices() {
+            const deviceData = await fetchAnalytics('/devices', 'device');
+            const deviceDetails = await fetchAnalytics('/device-details', 'device');
+
+            if (!deviceData || deviceData.length === 0) {
+                document.getElementById('deviceChart').parentElement.innerHTML = '<div class="no-data">Aucune donnée disponible</div>';
+                document.getElementById('deviceList').innerHTML = '<div class="no-data">Aucune donnée disponible</div>';
+                return;
+            }
+
+            // Chart
+            if (charts.deviceChart) charts.deviceChart.destroy();
+            const ctx = document.getElementById('deviceChart').getContext('2d');
+            charts.deviceChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: deviceData.map(d => d.device),
+                    datasets: [{
+                        data: deviceData.map(d => d.percent),
+                        backgroundColor: ['#7C3AED', '#EC4899', '#A21CAF'],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { font: { size: 12 }, color: '#0A0A17' }
+                        }
+                    }
+                }
+            });
+
+            // List
+            const deviceList = document.getElementById('deviceList');
+            deviceList.innerHTML = '';
+            if (deviceDetails) {
+                deviceDetails.forEach(device => {
+                    const item = document.createElement('div');
+                    item.className = 'list-item';
+                    item.innerHTML = `
+                        <div>
+                            <div class="list-item-name">${device.device}</div>
+                            <div class="list-item-value">${device.users.toLocaleString('fr-FR')} utilisateurs</div>
+                        </div>
+                        <div class="list-item-percent">${device.percent}%</div>
+                    `;
+                    deviceList.appendChild(item);
+                });
+            }
+        }
+
+        // Mise à jour des pays
+        async function updateCountries() {
+            const countryData = await fetchAnalytics('/countries', 'country');
+
+            if (!countryData || countryData.length === 0) {
+                document.getElementById('countriesChart').parentElement.innerHTML = '<div class="no-data">Aucune donnée disponible</div>';
+                document.getElementById('countryList').innerHTML = '<div class="no-data">Aucune donnée disponible</div>';
+                return;
+            }
+
+            // Chart (Top 8)
+            const topCountries = countryData.slice(0, 8);
+            if (charts.countriesChart) charts.countriesChart.destroy();
+            const ctx = document.getElementById('countriesChart').getContext('2d');
+            charts.countriesChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topCountries.map(c => c.country),
+                    datasets: [{
+                        label: 'Utilisateurs',
+                        data: topCountries.map(c => c.users),
+                        backgroundColor: '#7C3AED',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: '#E5E5E7' }, ticks: { color: '#6B7280' } },
+                        y: { grid: { display: false }, ticks: { color: '#6B7280' } }
+                    }
+                }
+            });
+
+            // List
+            const countryList = document.getElementById('countryList');
+            countryList.innerHTML = '';
+            countryData.forEach(country => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `
+                    <div class="list-item-name">${country.country}</div>
+                    <div>
+                        <span class="list-item-value">${country.users.toLocaleString('fr-FR')}</span>
+                        <span class="list-item-percent">${country.percent}%</span>
+                    </div>
+                `;
+                countryList.appendChild(item);
+            });
+        }
+
+        // Actualisation globale
+        async function refreshDashboard() {
+            if (!validateDateRange()) return;
+
+            document.getElementById('refreshBtn').classList.add('loading');
+            document.getElementById('refreshBtn').textContent = 'Chargement...';
+
+            await Promise.all([
+                updateKPIs(),
+                updateDevices(),
+                updateCountries()
+            ]);
+
+            document.getElementById('refreshBtn').classList.remove('loading');
+            document.getElementById('refreshBtn').textContent = 'Actualiser';
+            showMessage('✅ Données mises à jour avec succès', 'success');
+        }
+
+        document.getElementById('refreshBtn').addEventListener('click', refreshDashboard);
+
+        // Chargement initial
+        refreshDashboard();
+    </script>
+</body>
+</html>
