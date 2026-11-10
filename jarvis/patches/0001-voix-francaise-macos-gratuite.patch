@@ -1,0 +1,129 @@
+diff --git a/preflight.py b/preflight.py
+index 94fcc70..0bb7322 100644
+--- a/preflight.py
++++ b/preflight.py
+@@ -441,6 +441,9 @@ def _check_screen_recording_sync() -> Check:
+ 
+ def _check_fish_api_key_sync() -> Check:
+     """FISH_API_KEY or ELEVENLABS_API_KEY must be set or JARVIS has no voice."""
++    if os.environ.get("JARVIS_TTS_PROVIDER", "").strip().lower() == "macos":
++        return Check(name="fish_api_key", status=STATUS_OK,
++                     message="Voice: macOS `say` (free, offline, French).")
+     if os.environ.get("ELEVENLABS_API_KEY"):
+         return Check(name="fish_api_key", status=STATUS_OK, message="ELEVENLABS_API_KEY is set.")
+     if os.environ.get("FISH_API_KEY"):
+diff --git a/server.py b/server.py
+index 1f4abe8..f86df8c 100644
+--- a/server.py
++++ b/server.py
+@@ -104,9 +104,18 @@ FISH_API_URL = "https://api.fish.audio/v1/tts"
+ # ElevenLabs takes over when its key is set (default voice: "George", British).
+ ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
+ ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "JBFqnCBsd6RMkjVDRZzb")
+-TTS_PROVIDER = "elevenlabs" if ELEVENLABS_API_KEY else "fish"
+-TTS_API_KEY = ELEVENLABS_API_KEY or FISH_API_KEY
+-TTS_VOICE_ID = ELEVENLABS_VOICE_ID if ELEVENLABS_API_KEY else FISH_VOICE_ID
++# JARVIS_TTS=macos forces the free, offline macOS voice (`say`); it is also
++# the fallback when no paid key is set, so JARVIS is never silent.
++_TTS_FORCED = os.getenv("JARVIS_TTS_PROVIDER", "").strip().lower()
++MACOS_VOICE = os.getenv("JARVIS_MACOS_VOICE", "Thomas")  # French; "Audrey" = female
++if _TTS_FORCED == "macos" or (not ELEVENLABS_API_KEY and not FISH_API_KEY):
++    TTS_PROVIDER = "macos"
++    TTS_API_KEY = "macos"          # sentinel: no key needed, keeps guards happy
++    TTS_VOICE_ID = MACOS_VOICE
++else:
++    TTS_PROVIDER = "elevenlabs" if ELEVENLABS_API_KEY else "fish"
++    TTS_API_KEY = ELEVENLABS_API_KEY or FISH_API_KEY
++    TTS_VOICE_ID = ELEVENLABS_VOICE_ID if ELEVENLABS_API_KEY else FISH_VOICE_ID
+ # The ear: ElevenLabs Scribe realtime when the key is there (stt_stream.py),
+ # Chrome's own recogniser otherwise or when JARVIS_STT=browser.
+ STT_PROVIDER = ("scribe" if ELEVENLABS_API_KEY and os.getenv("JARVIS_STT", "scribe") != "browser"
+@@ -481,6 +490,14 @@ async def synthesize_speech(text: str) -> Optional[bytes]:
+         log.warning("no TTS key set (FISH_API_KEY / ELEVENLABS_API_KEY), skipping TTS")
+         return None
+ 
++    if TTS_PROVIDER == "macos":
++        r = await tts.synthesize_macos(text, TTS_VOICE_ID)
++        if r is None:
++            return None
++        _session_tokens["tts_calls"] += 1
++        _append_usage_entry(0, 0, "tts")
++        return r.audio
++
+     try:
+         async with httpx.AsyncClient(timeout=15.0) as http:
+             response = await http.post(
+diff --git a/tts.py b/tts.py
+index 924ea3e..3550af8 100644
+--- a/tts.py
++++ b/tts.py
+@@ -11,6 +11,10 @@ import time
+ from dataclasses import dataclass
+ from typing import Optional
+ 
++import asyncio
++import shutil
++import tempfile
++
+ import httpx
+ 
+ log = logging.getLogger("jarvis.tts")
+@@ -19,6 +23,49 @@ FISH_TTS_URL = "https://api.fish.audio/v1/tts"
+ ELEVEN_TTS_URL = "https://api.elevenlabs.io/v1/text-to-speech/{voice_id}/stream"
+ ELEVEN_MODEL_ID = "eleven_flash_v2_5"
+ 
++# --- macOS native voice (free, offline) -----------------------------------
++# `say` is part of macOS. It writes AIFF; afconvert turns that into the
++# 16-bit PCM WAV the browser's decodeAudioData accepts everywhere.
++MACOS_DEFAULT_VOICE = "Thomas"      # French (male). "Audrey" is the female one.
++
++
++async def synthesize_macos(text: str, voice: str = MACOS_DEFAULT_VOICE,
++                           rate: int = 185) -> Optional["SynthResult"]:
++    """Speak `text` with the macOS `say` command and return WAV bytes.
++
++    Costs nothing and needs no network. Returns None on any failure so the
++    caller degrades to text, exactly as it does for the paid providers.
++    """
++    text = (text or "").strip()
++    if not text:
++        return None
++    if not shutil.which("say") or not shutil.which("afconvert"):
++        log.error("macOS TTS asked for but `say`/`afconvert` are missing")
++        return None
++    t0 = time.monotonic()
++    with tempfile.TemporaryDirectory(prefix="jarvis-say-") as tmp:
++        aiff = f"{tmp}/out.aiff"
++        wav = f"{tmp}/out.wav"
++        try:
++            for argv in (["say", "-v", voice, "-r", str(rate), "-o", aiff, "--", text],
++                         ["afconvert", "-f", "WAVE", "-d", "LEI16", aiff, wav]):
++                proc = await asyncio.create_subprocess_exec(
++                    *argv, stdout=asyncio.subprocess.DEVNULL,
++                    stderr=asyncio.subprocess.PIPE)
++                _, err = await proc.communicate()
++                if proc.returncode != 0:
++                    log.error(f"macOS TTS failed ({argv[0]}): "
++                              f"{(err or b'').decode(errors='replace')[:200]}")
++                    return None
++            audio = open(wav, "rb").read()
++        except OSError as e:
++            log.error(f"macOS TTS error: {e}")
++            return None
++    if not audio:
++        return None
++    took = time.monotonic() - t0
++    return SynthResult(audio, took, took)
++
+ 
+ @dataclass
+ class SynthResult:
+@@ -49,6 +96,8 @@ async def synthesize_chunk(text: str, *, api_key: str, voice_id: str,
+                            latency: str = "balanced", timeout: float = 15.0,
+                            provider: str = "fish") -> Optional[SynthResult]:
+     text = (text or "").strip()
++    if provider == "macos":
++        return await synthesize_macos(text, voice_id or MACOS_DEFAULT_VOICE)
+     if not text or not api_key:
+         return None
+     own = client is None
